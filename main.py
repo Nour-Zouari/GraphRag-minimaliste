@@ -1,4 +1,4 @@
-from langchain_pipeline.chatbot_efficient import respond
+from langchain_pipeline.chatbot import respond
 
 print("Chatbot médical (Gemini + Neo4j)")
 while True:
