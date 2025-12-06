@@ -1,7 +1,6 @@
 # MedicalChatbot
 
-This provides a minimal project layout to build a medical
-chatbot that uses a graph database (Neo4j) and LangChain for LLM orchestration.
+This provides a project layout to build a medical chatbot that uses a graph database (Neo4j) and LangChain for LLM orchestration.
 
 Structure:
 
