@@ -1,7 +1,9 @@
 import os
 import google.generativeai as genai
 from neo4j import GraphDatabase
+from dotenv import load_dotenv
 
+load_dotenv()
 # Config Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
@@ -70,10 +72,9 @@ def respond(user_question: str):
             return f"Aucune allergie connue pour {patient} avec {allerg}."
 
     # Sinon : demander à Gemini pour une réponse prudente
-    response = genai.generate_text(
-        model="gemini-2.5-flash",
-        prompt=f"Utilisateur: {user_question}\nAssistant: Réponds de manière prudente si tu n'as pas l'information."
-    )
+    model = genai.GenerativeModel("gemini-2.5-flash") # Create model instance
+    prompt_text = f"Utilisateur: {user_question}\nAssistant: Réponds de manière prudente si tu n'as pas l'information."
+    response = model.generate_content(prompt_text) # Use generate_content
     return response.text
 
 # Test rapide
