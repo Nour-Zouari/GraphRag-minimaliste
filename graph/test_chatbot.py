@@ -1,4 +1,5 @@
 #tester avec questions sans recours à gemini => sans expiration d'API key
+#avec l'allergie
 from neo4j import GraphDatabase
 
 # Config Neo4j
