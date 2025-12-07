@@ -53,6 +53,10 @@ Messages d’info pour savoir quand Gemini est sollicité.
 | Gemini                  | Non                                        | Non                                                    |
 | Utilité                 | Débogage et inspection du graphe           | Validation du comportement du chatbot avant usage réel |
 
+### le fichier build_graph.py :
+ceci est pour un test minimaliste du graphe médical => pas notre code final
+
+
 
 ## Cas de test avec Gemini : 
 > python main.py 
@@ -80,4 +84,32 @@ Voici les points importants à considérer :
 **Il est impératif de toujours informer votre médecin ou votre pharmacien de TOUS les médicaments que vous prenez**, y compris les médicaments en vente libre comme l'aspirine. Votre professionnel de la santé pourra évaluer votre fonction rénale, vos autres conditions médicales et déterminer si cette combinaison est appropriée pour vous, en ajustant les doses si nécessaire ou en surveillant attentivement. 
 
 **Je suis un programme d'IA et ne peux pas fournir de conseils médicaux. Cette information ne remplace en aucun cas l'avis d'un professionnel de la santé.**
-Question:
+
+
+## on a telechager la dataset BPDM cis-pathologie : https://explore.data.gouv.fr/fr/datasets/62694159aefe65020a033bdc/#/resources/f549a488-d0fb-4ded-8fe0-1bbd6f5653bd
+pourquoi l'utiliser ? 
+
+
+## limites et ouverture d'horizons :
+Dans le CSV OpenFDA ou des sources similaires, la **deuxième colonne (“interactions_text” ou équivalent)** peut contenir :
+
+* Des interactions connues avec d’autres médicaments
+* Des effets secondaires, précautions ou notes générales
+* Des mentions contextuelles qui ne signifient pas forcément qu’il y a une interaction directe avec le médicament de la première colonne
+
+Donc **tous les noms détectés dans le texte ne sont pas forcément des interactions actives** avec le médicament principal.
+
+Pour plus de précision :
+
+1. Si on veut **la sécurité**, on peut garder uniquement les lignes où le texte contient explicitement des mots comme `interact`, `contraindicated`, `avoid`, etc., en anglais.
+2. Les mentions passives ou générales seraient ignorées, sinon on risque d’avoir beaucoup de faux positifs.
+3. Une autre approche consiste à **consulter une base de données spécialisée d’interactions médicamenteuses** pour valider les relations. Le CSV OpenFDA peut servir de point de départ, mais il n’est pas parfait pour générer un graphe d’interactions fiable à 100 %.
+On pourrait un jour  **filtrer le texte pour ne garder que les interactions probables et générer le CSV Neo4j sans trop de “bruit”**.
+
+## remarque concernant l'importation dans neo4j : 
+Le code CIS dans Neo4j sert surtout à identifier de manière unique chaque médicament. Dans une base graphique, tu veux que chaque nœud soit un identifiant clair et stable, pas juste un nom qui peut avoir des variantes (ex. : « Paracetamol », « Paracétamol », « PARACETAMOL 500 mg »).
+
+En pratique :
+Nom du médicament → affichage lisible pour l’utilisateur ou pour recherche
+Code CIS → clé unique pour le nœud dans Neo4j, pour relier correctement les interactions et éviter les doublons
+Relations (INTERAGIT_AVEC) → entre nœuds identifiés par Code_CIS

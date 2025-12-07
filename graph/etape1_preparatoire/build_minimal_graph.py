@@ -1,3 +1,4 @@
+# ceci est pour un test minimaliste du graphe médical => pas notre code final
 from neo4j import GraphDatabase
 
 uri = "bolt://localhost:7687"
