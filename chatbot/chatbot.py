@@ -30,17 +30,12 @@ def normalize_text(text):
 # ----------------------
 def get_entities_from_graph():
     med_mapping = {}  # nom normalisé -> (code, nom original)
-    allergen_mapping = {}  # nom normalisé -> (code, nom original)
     with driver.session() as session:
         result = session.run("MATCH (m:MEDICAMENT) RETURN m.code AS code, m.name AS name")
         for record in result:
             norm_name = normalize_text(record["name"])
             med_mapping[norm_name] = (record["code"], record["name"])
-        result = session.run("MATCH (a:ALLERGENE) RETURN a.code AS code, a.name AS name")
-        for record in result:
-            norm_name = normalize_text(record["name"])
-            allergen_mapping[norm_name] = (record["code"], record["name"])
-    return med_mapping, allergen_mapping
+    return med_mapping
 
 # ----------------------
 # Requêtes Neo4j
@@ -54,21 +49,12 @@ def query_interaction(code1, code2):
         )
         return result.single() is not None
 
-def query_allergy(patient, allergen_code):
-    with driver.session() as session:
-        result = session.run(
-            "MATCH (p:PATIENT {name:$patient})-[:A_ALLERGIE]->(a:ALLERGENE {code:$allergen}) "
-            "RETURN a.code AS A",
-            patient=patient, allergen=allergen_code
-        )
-        return result.single() is not None
-
 # ----------------------
 # Fonction principale pour répondre
 # ----------------------
-def respond(user_question: str, patient="Patient1"):
+def respond(user_question: str):
     user_question_norm = normalize_text(user_question)
-    med_mapping, allergen_mapping = get_entities_from_graph()
+    med_mapping = get_entities_from_graph()
 
     # Identifier les médicaments mentionnés
     found_meds = [
@@ -83,18 +69,7 @@ def respond(user_question: str, patient="Patient1"):
                 if query_interaction(code1, code2):
                     return f"D'après mes données, {name1} interagit avec {name2} — ce n'est pas recommandé."
         return "Aucune interaction connue entre les médicaments mentionnés."
-
-    # Identifier les allergènes mentionnés
-    found_allergens = [
-        (code, name) for norm_name, (code, name) in allergen_mapping.items()
-        if norm_name in user_question_norm
-    ]
-    if found_allergens:
-        allerg_code, allerg_name = found_allergens[0]
-        if query_allergy(patient, allerg_code):
-            return f"{patient} est allergique à {allerg_name}."
-        else:
-            return f"Aucune allergie connue pour {patient} avec {allerg_name}."
+    
 
     # Sinon : demander à Gemini pour une réponse prudente
     model = genai.GenerativeModel("gemini-2.5-flash")
