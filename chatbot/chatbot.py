@@ -68,8 +68,7 @@ def respond(user_question: str):
                 code2, name2 = found_meds[j]
                 if query_interaction(code1, code2):
                     return f"D'après mes données, {name1} interagit avec {name2} — ce n'est pas recommandé."
-        return "Aucune interaction connue entre les médicaments mentionnés."
-    
+        #return "Aucune interaction connue entre les médicaments mentionnés."
 
     # Sinon : demander à Gemini pour une réponse prudente
     model = genai.GenerativeModel("gemini-2.5-flash")
